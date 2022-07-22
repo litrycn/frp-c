@@ -19,6 +19,8 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"net/http"
+	"io/ioutil"
 )
 
 var (
@@ -65,6 +67,20 @@ func RenderContent(in []byte) (out []byte, err error) {
 }
 
 func GetRenderedConfFromFile(path string) (out []byte, err error) {
+    if strings.Index(path, "http") != -1{
+        response, _err1 := http.Get(path)
+        if _err1 != nil {
+            panic(_err1)
+        }
+        defer response.Body.Close()
+        body, _err := ioutil.ReadAll(response.Body)
+        if _err != nil {
+            return
+        }
+        content :=  []byte(string(body))
+        out, err = RenderContent(content)
+        return
+    }
 	var b []byte
 	b, err = os.ReadFile(path)
 	if err != nil {
